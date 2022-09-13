@@ -1,7 +1,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <iostream>
-#include <future>
+#include <thread>
 
 #include "Utils.h"
 #include "RenderWindow.h"
@@ -23,12 +23,8 @@ int main(int argv, char* args[]) {
 	screen.y = 0;
 	screen.w = width;
 	screen.h = height;
-	//initiate camera
-	float x = -(float)width/2;
-	float y = -(float)height/2;
-	float scale = 1;
-
-	int iter = 50;
+	//initiate calculator
+	Calculate calculator(width, height);
 
 
 	SDL_Event event;
@@ -54,40 +50,22 @@ int main(int argv, char* args[]) {
 				if (event.type == SDL_QUIT)
 					programRunning = false;
 				const Uint8* state = SDL_GetKeyboardState(NULL);
-				if (state[SDL_SCANCODE_RIGHT] || state[SDL_SCANCODE_D]) {
-					x += height/scale;
-					log("right");
-				}
-				if (state[SDL_SCANCODE_LEFT] || state[SDL_SCANCODE_A]) {
-					x -= height/scale;
-					log("left");
-				}
-				if (state[SDL_SCANCODE_UP] || state[SDL_SCANCODE_W]) {
-					y -= height/scale;
-					log("up");
-				}
-				if (state[SDL_SCANCODE_DOWN] || state[SDL_SCANCODE_S]) {
-					y += height/scale;
-					log("down");
-				}
-				if (state[SDL_SCANCODE_PERIOD] && event.key.repeat == 0) {
-					scale *= 1.25; 
-					log("zoom in");
-				}
-				if (state[SDL_SCANCODE_COMMA] && event.key.repeat == 0) {
-					scale /= 1.25;
-					log("zoom out");
-				}
-				if (state[SDL_SCANCODE_M] && event.key.repeat == 0) {
-					iter *= 1.25;
-					log("Increased Iterations");
-				}
-				if (state[SDL_SCANCODE_N] && event.key.repeat == 0) {
-					iter /= 1.25;
-					if (iter < 4)
-						iter = 4;
-					log("Decreased Iterations");
-				}
+				if (state[SDL_SCANCODE_RIGHT] || state[SDL_SCANCODE_D])
+					calculator.move(1, 1);
+				if (state[SDL_SCANCODE_LEFT] || state[SDL_SCANCODE_A])
+					calculator.move(1, 0);
+				if (state[SDL_SCANCODE_UP] || state[SDL_SCANCODE_W])
+					calculator.move(0, 0);
+				if (state[SDL_SCANCODE_DOWN] || state[SDL_SCANCODE_S])
+					calculator.move(0, 1);
+				if (state[SDL_SCANCODE_PERIOD] && event.key.repeat == 0)
+					calculator.scaleCam(1);
+				if (state[SDL_SCANCODE_COMMA] && event.key.repeat == 0)
+					calculator.scaleCam(0);
+				if (state[SDL_SCANCODE_M] && event.key.repeat == 0)
+					calculator.scaleIter(1);
+				if (state[SDL_SCANCODE_N] && event.key.repeat == 0)
+					calculator.scaleIter(0);
 			}
 			//Update
 
@@ -97,7 +75,7 @@ int main(int argv, char* args[]) {
 			window.clear();
 
 			char* pixels = new char[width * height * 3];
-			Calculate::mandelbrot(pixels, width, height, x, y, scale, iter);
+			calculator.mandelbrot(pixels);
 			SDL_Surface* surface = SDL_CreateRGBSurfaceFrom((void*)pixels,
 				width,
 				height,
@@ -129,7 +107,7 @@ int main(int argv, char* args[]) {
 			SDL_Delay(timeStep - frameTicks);
 		}
 		//For Frame Time
-		//log(SDL_GetTicks() - newTime);
+		log(SDL_GetTicks() - newTime);
 	}
 	window.cleanUp();
 	SDL_Quit();

@@ -130,6 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Calculate.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="renderwindow.cpp" />
   </ItemGroup>
